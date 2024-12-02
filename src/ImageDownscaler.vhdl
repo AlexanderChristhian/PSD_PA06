@@ -6,6 +6,8 @@ use IEEE.NUMERIC_STD.ALL;
 library std;
 use std.textio.all;
 
+use work.package_imageArray.all;
+
 entity ImageReader is
     Port ( clk : in STD_LOGIC;
            rst : in STD_LOGIC;
@@ -15,41 +17,99 @@ entity ImageReader is
            resolution : out INTEGER);
 end ImageReader;
 
-architecture Behavioral of ImageReader is
+architecture Structural of ImageReader is
+    type pixel_array is array (0 to 1023, 0 to 1023) of RGB; -- Adjust size as needed
+
+    component BoxSampling
+        Port ( clk : in STD_LOGIC;
+               rst : in STD_LOGIC;
+               width : in INTEGER;
+               height : in INTEGER;
+               downscale_factor : in INTEGER;
+               r_array : in image_process; -- Adjust size as needed
+               image_data_r : out STD_LOGIC_VECTOR(7 downto 0);
+               image_data_g : out STD_LOGIC_VECTOR(7 downto 0);
+               image_data_b : out STD_LOGIC_VECTOR(7 downto 0);
+               done : out STD_LOGIC);
+    end component;
+
+    type state_type is (IDLE, READ_RESOLUTION, READ_PIXEL, DOWNSCALE);
+    signal state : state_type := IDLE;
+    signal downscale_factor : INTEGER := 2; -- Example downscale factor
+    signal r_array : image_process(0 to 1023, 0 to 1023); -- Adjust size as needed
+    signal row, col : INTEGER := 0;
+    signal done : STD_LOGIC := '0';
+    signal width, height : INTEGER := 0;
+
 begin
+    uut: BoxSampling
+        Port map (
+            clk => clk,
+            rst => rst,
+            width => width,
+            height => height,
+            downscale_factor => downscale_factor,
+            r_array => r_array,
+            image_data_r => image_data_r,
+            image_data_g => image_data_g,
+            image_data_b => image_data_b,
+            done => done
+        );
+
     process
         file img_file : text open read_mode is "C:/Users/alexa/Documents/.Semester 3/PSD/PSD_PA06/image_for_vhdl.txt";
-        variable line : line;
-        variable width, height : INTEGER;
+        variable line_buffer : line;
         variable r, g, b : INTEGER;
+        variable width_var, height_var : INTEGER;
     begin
         wait until rising_edge(clk);
         if rst = '1' then
-            -- Initialize or reset
+            state <= IDLE;
             resolution <= 0;
             image_data_r <= (others => '0');
             image_data_g <= (others => '0');
             image_data_b <= (others => '0');
+            row <= 0;
+            col <= 0;
         else
-            -- Read resolution from file (assume line format is correct)
-            if not endfile(img_file) then
-                readline(img_file, line);
-                read(line, width); -- Read width
-                readline(img_file, line);
-                read(line, height); -- Read height
-                resolution <= width * height;
-                -- Read and output RGB values
-                while not endfile(img_file) loop
-                    readline(img_file, line);
-                    read(line, r);
-                    read(line, g);
-                    read(line, b);
-                    image_data_r <= std_logic_vector(to_unsigned(r, 8));
-                    image_data_g <= std_logic_vector(to_unsigned(g, 8));
-                    image_data_b <= std_logic_vector(to_unsigned(b, 8));
-                    wait for 10 ns; -- Add delay to ensure data is processed
-                end loop;
-            end if;
+            case state is
+                when IDLE =>
+                    if not endfile(img_file) then
+                        state <= READ_RESOLUTION;
+                    end if;
+                when READ_RESOLUTION =>
+                    readline(img_file, line_buffer);
+                    read(line_buffer, width_var); -- Read width
+                    width <= width_var;
+                    readline(img_file, line_buffer);
+                    read(line_buffer, height_var); -- Read height
+                    height <= height_var;
+                    resolution <= (width / downscale_factor) * (height / downscale_factor);
+                    state <= READ_PIXEL;
+                when READ_PIXEL =>
+                    if not endfile(img_file) then
+                        readline(img_file, line_buffer);
+                        read(line_buffer, r);
+                        read(line_buffer, g);
+                        read(line_buffer, b);
+                        r_array(row, col).RED <= r;
+                        r_array(row, col).GREEN <= g;
+                        r_array(row, col).BLUE <= b;
+                        col <= col + 1;
+                        if col = width then
+                            col <= 0;
+                            row <= row + 1;
+                            if row = height then
+                                state <= DOWNSCALE;
+                                row <= 0;
+                            end if;
+                        end if;
+                    end if;
+                when DOWNSCALE =>
+                    if done = '1' then
+                        state <= IDLE;
+                    end if;
+            end case;
         end if;
     end process;
-end Behavioral;
+end Structural;
