@@ -15,6 +15,11 @@ def save_resolution_and_rgb_for_vhdl(image_path, output_file):
         # Write resolution
         file.write(f"{width}\n")
         file.write(f"{height}\n")
+        # Prompt user for DownscaleValue
+        downscale_value = int(input("Enter DownscaleValue: "))
+        
+        # Write DownscaleValue to the file
+        file.write(f"{downscale_value}\n")
         
         # Write RGB values for each pixel
         for pixel in pixels:
