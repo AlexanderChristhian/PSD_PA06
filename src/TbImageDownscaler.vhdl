@@ -1,3 +1,7 @@
+-- TbImageDownscaler.vhdl
+-- Testbench untuk ImageDownscaler
+
+-- Library
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_ARITH.ALL;
@@ -6,11 +10,14 @@ use IEEE.NUMERIC_STD.ALL;
 library std;
 use std.textio.all;
 
+-- Package
 use work.package_imageArray.all;
 
+-- Entity
 entity TbImageDownscaler is
 end TbImageDownscaler;
 
+-- Architecture
 architecture Behavioral of TbImageDownscaler is
     signal clk : STD_LOGIC := '0';
     signal rst : STD_LOGIC := '1';
@@ -18,32 +25,34 @@ architecture Behavioral of TbImageDownscaler is
     signal done : STD_LOGIC;
     signal downscaled_done : STD_LOGIC;
     signal downscaled_width, downscaled_height : INTEGER;
-    signal downscale_factor : INTEGER := 2; -- Default value
+    signal downscale_factor : INTEGER := 2; -- Nilai default
     signal input_width, input_height : INTEGER := 0;
-    signal input_image : image_array(0 to get_input_width-1, 0 to get_input_height-1);
-    signal output_image : image_array(0 to get_output_width-1, 0 to get_output_height-1);
+    signal input_image : image_array(0 to get_input_width-1, 0 to get_input_height-1); -- Input image
+    signal output_image : image_array(0 to get_output_width-1, 0 to get_output_height-1); -- Output image
 
+    -- Instansi komponen ImageDownscaler
     component ImageDownscaler
         Port ( clk : in STD_LOGIC;
                rst : in STD_LOGIC;
-               image_input : in image_array(0 to get_input_width-1, 0 to get_input_height-1);
+               image_input : in image_array(0 to get_input_width-1, 0 to get_input_height-1); -- Input image
                input_width : in INTEGER;
                input_height : in INTEGER;
                resolution : out INTEGER;
                done : buffer STD_LOGIC;
                downscaled_done : out STD_LOGIC;
-               output_image : out image_array(0 to get_output_width-1, 0 to get_output_height-1);
+               output_image : out image_array(0 to get_output_width-1, 0 to get_output_height-1); -- Output image
                downscaled_width : out INTEGER;
                downscaled_height : out INTEGER;
                downscale_factor : in INTEGER);
     end component;
 
+-- Begin process
 begin
     uut: ImageDownscaler
         port map (
             clk => clk,
             rst => rst,
-            image_input => input_image,
+            image_input => input_image, -- Input image
             input_width => input_width,
             input_height => input_height,
             resolution => resolution,
@@ -52,10 +61,10 @@ begin
             output_image => output_image,
             downscaled_width => downscaled_width,
             downscaled_height => downscaled_height,
-            downscale_factor => downscale_factor -- Added mapping
+            downscale_factor => downscale_factor 
         );
 
-    -- Clock generation
+    -- Clock process
     clk_process : process
     begin
         while true loop
@@ -66,8 +75,9 @@ begin
         end loop;
     end process;
 
-    -- File reading process
+    -- Memproses file gambar
     file_read_proc: process
+        -- Variable
         file img_file : text;
         variable line_buffer : line;
         variable r, g, b : INTEGER;
@@ -75,24 +85,26 @@ begin
         variable width_temp, height_temp : INTEGER;
         variable temp_image : image_array(0 to get_input_width-1, 0 to get_input_height-1);
         variable down_width, down_height : INTEGER;
-        variable downscale_factor_var : INTEGER ; -- Default value
+        variable downscale_factor_var : INTEGER ; 
+    -- Mulai
     begin
+        -- Buka file gambar
         file_open(img_file, "C:/Users/alexa/Documents/.Semester 3/PSD/PSD_PA06/image_for_vhdl.txt", read_mode);
         
-        -- Read dimensions
+        -- Memproses lebar, tinggi, dan faktor downsampling
         readline(img_file, line_buffer);
         read(line_buffer, width_temp);
         readline(img_file, line_buffer);
         read(line_buffer, height_temp);
         readline(img_file, line_buffer);
         read(line_buffer, downscale_factor_var);
-        downscale_factor <= downscale_factor_var; -- Assign to signal
+        downscale_factor <= downscale_factor_var; 
         
-        -- Calculate sizes and initialize arrays
+        -- Menghitung lebar dan tinggi gambar yang sudah di-downscale
         down_width := calculate_downscaled_size(width_temp, 2);
         down_height := calculate_downscaled_size(height_temp, 2);
         
-        -- Initialize image with zeros
+        -- Meninisialisasi array gambar sementara dengan nilai 0 pada setiap pixel dan setiap warna
         for i in 0 to width_temp-1 loop
             for j in 0 to height_temp-1 loop
                 temp_image(i, j).RED := 0;
@@ -100,21 +112,25 @@ begin
                 temp_image(i, j).BLUE := 0;
             end loop;
         end loop;
-
+        
+        -- Assign lebar dan tinggi gambar ke signal
         input_width <= width_temp;
         input_height <= height_temp;
         
-        -- Read pixel data into temp_image
+        -- Memproses pixel gambar
         while not endfile(img_file) loop
+            -- Membaca nilai R, G, B dari file
             readline(img_file, line_buffer);
             read(line_buffer, r);
             read(line_buffer, g);
             read(line_buffer, b);
             
+            -- Assign nilai R, G, B ke array gambar sementara
             temp_image(row, col).RED := r;
             temp_image(row, col).GREEN := g;
             temp_image(row, col).BLUE := b;
             
+            -- Update indeks
             if col = width_temp - 1 then
                 col := 0;
                 row := row + 1;
@@ -124,10 +140,10 @@ begin
         end loop;
         
 
-        -- Assign to signals after reading is complete
+        -- Mengassign array gambar sementara ke signal
         input_width <= width_temp;
         input_height <= height_temp;
-        input_image <= temp_image; -- Now assigning to signal
+        input_image <= temp_image; 
         
         wait;
     end process;
@@ -137,25 +153,25 @@ begin
         variable output_line : line;
         file output_file : text open write_mode is "C:/Users/alexa/Documents/.Semester 3/PSD/PSD_PA06/Output.txt";
     begin
-        -- Wait for reset to complete
+        -- Tunggu hingga proses selesai
         wait for 100 ns;
         rst <= '1';
         wait for 20 ns;
         rst <= '0';
 
-        -- Wait for downscaling to complete
+        -- Tunggu hingga proses selesai
         wait until downscaled_done = '1';
-        -- Add additional wait to ensure signals are stable
+        -- Delay untuk menunggu proses selesai agar tidak ada gangguan saat menulis file
         wait for 50 ns;
 
-        -- Write dimensions first
+        -- Menulis lebar dan tinggi output image ke file
         write(output_line, downscaled_width);
         writeline(output_file, output_line);
 
         write(output_line, downscaled_height);
         writeline(output_file, output_line);
 
-        -- Write pixel data
+        -- Menuliskan Output Image ke file
         for i in 0 to downscaled_height - 1 loop
             for j in 0 to downscaled_width - 1 loop
                 write(output_line, output_image(i, j).RED);
@@ -166,10 +182,11 @@ begin
                 writeline(output_file, output_line);
             end loop;
         end loop;
-
+        
+        -- Tutup file
         file_close(output_file);
 
-        -- Signal completion
+        -- Report simulation selesai
         report "Simulation completed successfully";
         wait;
     end process;
