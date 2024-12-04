@@ -18,6 +18,11 @@ architecture Behavioral of TbImageReader is
     signal image_data_g : STD_LOGIC_VECTOR(7 downto 0);
     signal image_data_b : STD_LOGIC_VECTOR(7 downto 0);
     signal resolution : INTEGER;
+    signal done : STD_LOGIC;
+    signal downscaled_done : STD_LOGIC;
+    signal downscaled_width : INTEGER;
+    signal downscaled_height : INTEGER;
+    signal output_image : image_process(0 to 511, 0 to 511); -- New array for output
     file output_file : text open write_mode is "C:/Users/alexa/Documents/.Semester 3/PSD/PSD_PA06/Output.txt";
 
     component ImageReader
@@ -26,7 +31,12 @@ architecture Behavioral of TbImageReader is
                image_data_r : out STD_LOGIC_VECTOR(7 downto 0);
                image_data_g : out STD_LOGIC_VECTOR(7 downto 0);
                image_data_b : out STD_LOGIC_VECTOR(7 downto 0);
-               resolution : out INTEGER);
+               resolution : out INTEGER;
+               done : buffer STD_LOGIC;  -- Changed from 'out' to 'buffer'
+               downscaled_done : out STD_LOGIC;
+               output_image : out image_process(0 to 511, 0 to 511);
+               downscaled_width : out INTEGER;
+               downscaled_height : out INTEGER);
     end component;
 
     function to_string(slv : STD_LOGIC_VECTOR) return string is
@@ -50,7 +60,12 @@ begin
             image_data_r => image_data_r,
             image_data_g => image_data_g,
             image_data_b => image_data_b,
-            resolution => resolution
+            resolution => resolution,
+            done => done,
+            downscaled_done => downscaled_done,
+            output_image => output_image,
+            downscaled_width => downscaled_width,
+            downscaled_height => downscaled_height
         );
 
     -- Clock generation
@@ -69,29 +84,36 @@ begin
         variable output_line : line;
     begin
         -- Initialize reset
+        rst <= '0';
+        wait for 20 ns;
         rst <= '1';
         wait for 20 ns;
         rst <= '0';
 
         -- Wait for some time to observe the behavior
-        wait for 1000 ns;
+        wait until done = '1';
+
+        -- Wait for the downscaled image to be copied
+        wait until downscaled_done = '1';
 
         -- Write output data to file
-        write(output_line, string'("Resolution: "));
-        write(output_line, resolution);
+        write(output_line, string'("Downscaled Width: "));
+        write(output_line, downscaled_width);
         writeline(output_file, output_line);
 
-        write(output_line, string'("Red: "));
-        write(output_line, to_string(image_data_r));
+        write(output_line, string'("Downscaled Height: "));
+        write(output_line, downscaled_height);
         writeline(output_file, output_line);
 
-        write(output_line, string'("Green: "));
-        write(output_line, to_string(image_data_g));
-        writeline(output_file, output_line);
-
-        write(output_line, string'("Blue: "));
-        write(output_line, to_string(image_data_b));
-        writeline(output_file, output_line);
+        for i in 0 to downscaled_height - 1 loop
+            for j in 0 to downscaled_width - 1 loop
+                write(output_line, string'("Pixel (" & integer'image(i) & ", " & integer'image(j) & "): "));
+                write(output_line, string'("R=" & integer'image(output_image(i, j).RED) & " "));
+                write(output_line, string'("G=" & integer'image(output_image(i, j).GREEN) & " "));
+                write(output_line, string'("B=" & integer'image(output_image(i, j).BLUE)));
+                writeline(output_file, output_line);
+            end loop;
+        end loop;
 
         -- End simulation
         wait;

@@ -1,8 +1,6 @@
 from PIL import Image
 import os
 
-# The code reads the RGB values of each pixel from left to right and then downwards. 
-# The pixels are stored in a list, where each pixel is represented as a tuple (R, G, B).
 def save_resolution_and_rgb_for_vhdl(image_path, output_file):
     if not os.path.exists(image_path):
         print(f"Image file {image_path} does not exist.")
