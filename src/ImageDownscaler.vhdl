@@ -98,7 +98,7 @@ begin
                         -- Copy hasil downscaled image ke output image
                         for i in 0 to (height / downscale_factor) - 1 loop
                             for j in 0 to (width / downscale_factor) - 1 loop
-                                output_image(i, j) <= downscaled_image(i, j);
+                                output_image(j, i) <= downscaled_image(j, i);
                             end loop;
                         end loop;
                         downscaled_done <= '1';

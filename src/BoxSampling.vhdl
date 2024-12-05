@@ -42,15 +42,15 @@ begin
             done <= '0';
         -- Rising edge
         elsif rising_edge(clk) then
-            if downscale_row < (height / downscale_factor) and downscale_col < (width / downscale_factor) then
+            if downscale_col < (height / downscale_factor) and downscale_row < (width / downscale_factor) then
                 -- Reset sum saat awal iterasi
                 r_sum := 0;
                 g_sum := 0;
                 b_sum := 0;
                 
                 -- Menghitung rata-rata warna dengan metode Box Sampling dengan faktor downscale untuk setiap pixel
-                for row in 0 to downscale_factor - 1 loop
-                    for col in 0 to downscale_factor - 1 loop
+                for col in 0 to downscale_factor - 1 loop
+                    for row in 0 to downscale_factor - 1 loop
                         r_sum := r_sum + r_array(downscale_row * downscale_factor + row, downscale_col * downscale_factor + col).RED;
                         g_sum := g_sum + r_array(downscale_row * downscale_factor + row, downscale_col * downscale_factor + col).GREEN;
                         b_sum := b_sum + r_array(downscale_row * downscale_factor + row, downscale_col * downscale_factor + col).BLUE;
@@ -63,15 +63,15 @@ begin
                 downscaled_image(downscale_row, downscale_col).BLUE <= b_sum / (downscale_factor * downscale_factor);
 
                 -- Mengupdate indeks
-                if downscale_col = (width / downscale_factor) - 1 then
-                    downscale_col <= 0;
-                    downscale_row <= downscale_row + 1;
+                if downscale_row = (width / downscale_factor) - 1 then
+                    downscale_row <= 0;
+                    downscale_col <= downscale_col + 1;
                     -- Jika sudah sampai baris terakhir, maka selesai
-                    if downscale_row = (height / downscale_factor) - 1 then
+                    if downscale_col = (height / downscale_factor) - 1 then
                         done <= '1';
                     end if;
                 else
-                    downscale_col <= downscale_col + 1;
+                    downscale_row <= downscale_row + 1;
                 end if;
             end if;
         end if;

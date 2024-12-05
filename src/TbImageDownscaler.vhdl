@@ -105,11 +105,11 @@ begin
         down_height := calculate_downscaled_size(height_temp, 2);
         
         -- Meninisialisasi array gambar sementara dengan nilai 0 pada setiap pixel dan setiap warna
-        for i in 0 to width_temp-1 loop
-            for j in 0 to height_temp-1 loop
-                temp_image(i, j).RED := 0;
-                temp_image(i, j).GREEN := 0;
-                temp_image(i, j).BLUE := 0;
+        for i in 0 to height_temp-1 loop
+            for j in 0 to width_temp-1 loop
+                temp_image(j, i).RED := 0;
+                temp_image(j, i).GREEN := 0;
+                temp_image(j, i).BLUE := 0;
             end loop;
         end loop;
         
@@ -131,11 +131,11 @@ begin
             temp_image(row, col).BLUE := b;
             
             -- Update indeks
-            if col = width_temp - 1 then
-                col := 0;
-                row := row + 1;
-            else
+            if row = width_temp - 1 then
+                row := 0;
                 col := col + 1;
+            else
+                row := row + 1;
             end if;
         end loop;
         
@@ -174,11 +174,11 @@ begin
         -- Menuliskan Output Image ke file
         for i in 0 to downscaled_height - 1 loop
             for j in 0 to downscaled_width - 1 loop
-                write(output_line, output_image(i, j).RED);
+                write(output_line, output_image(j, i).RED);
                 write(output_line, string'(" "));
-                write(output_line, output_image(i, j).GREEN);
+                write(output_line, output_image(j, i).GREEN);
                 write(output_line, string'(" "));
-                write(output_line, output_image(i, j).BLUE);
+                write(output_line, output_image(j, i).BLUE);
                 writeline(output_file, output_line);
             end loop;
         end loop;

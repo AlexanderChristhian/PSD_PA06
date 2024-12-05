@@ -29,7 +29,7 @@ def save_resolution_and_rgb_for_vhdl(image_path, output_file):
             file.write(f"{pixel[0]} {pixel[1]} {pixel[2]}\n")
 
 # Code untuk membuat file teks dari resolusi dan nilai RGB dari gambar
-image_path = 'TestImage.jpg'  
+image_path = 'TestContoh2.jpg'  
 output_file = 'image_for_vhdl.txt'  
 save_resolution_and_rgb_for_vhdl(image_path, output_file)
 
