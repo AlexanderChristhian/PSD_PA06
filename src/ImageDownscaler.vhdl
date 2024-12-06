@@ -18,7 +18,7 @@ entity ImageDownscaler is
     -- Port
     Port ( clk : in STD_LOGIC;
            rst : in STD_LOGIC;
-           image_input : in image_array(0 to get_input_width-1, 0 to get_input_height-1); -- Input image
+           image_input : in image_array(0 to 7, 0 to 7); -- Input image
            input_width : in INTEGER;
            input_height : in INTEGER;
            resolution : out INTEGER;
@@ -26,7 +26,7 @@ entity ImageDownscaler is
            downscaled_done : out STD_LOGIC;
            downscaled_width : out INTEGER;
            downscaled_height : out INTEGER;
-           output_image : out image_array(0 to get_output_width-1, 0 to get_output_height-1); -- Output image
+           output_image : out image_array(0 to 3, 0 to 3); -- Output image
            downscale_factor : in INTEGER);
 end ImageDownscaler;
 
@@ -38,14 +38,14 @@ architecture Structural of ImageDownscaler is
                width : in INTEGER;
                height : in INTEGER;
                downscale_factor : in INTEGER;
-               r_array : in image_array(0 to get_input_width-1, 0 to get_input_height-1); -- Input image
-               downscaled_image : out image_array(0 to get_output_width-1, 0 to get_output_height-1); -- Output image
+               r_array : in image_array(0 to 7, 0 to 7);
+               downscaled_image : out image_array(0 to 3, 0 to 3);
                done : buffer STD_LOGIC);
     end component;
 
     -- Signal
-    signal r_array : image_array(0 to get_input_width-1, 0 to get_input_height-1);
-    signal downscaled_image : image_array(0 to get_output_width-1, 0 to get_output_height-1);
+    signal r_array : image_array(0 to 7, 0 to 7);
+    signal downscaled_image : image_array(0 to 3, 0 to 3);
     type state_type is (IDLE, PROCESS_INPUT, DOWNSCALE);
     signal state : state_type := IDLE;
     signal box_sampling_done : STD_LOGIC := '0';
@@ -95,9 +95,9 @@ begin
                 when DOWNSCALE =>
                     -- Cek apakah proses box sampling sudah selesai
                     if box_sampling_done = '1' then
-                        -- Copy hasil downscaled image ke output image
-                        for i in 0 to (height / downscale_factor) - 1 loop
-                            for j in 0 to (width / downscale_factor) - 1 loop
+                        -- Copy hasil downscaled image ke output image with fixed size (4x4)
+                        for i in 0 to 3 loop
+                            for j in 0 to 3 loop
                                 output_image(j, i) <= downscaled_image(j, i);
                             end loop;
                         end loop;

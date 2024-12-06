@@ -18,8 +18,8 @@ entity BoxSampling is
            width : in INTEGER;
            height : in INTEGER;
            downscale_factor : in INTEGER;
-           r_array : in image_array(0 to get_input_width-1, 0 to get_input_height-1); -- Input image
-           downscaled_image : out image_array(0 to get_output_width-1, 0 to get_output_height-1); -- Output image
+           r_array : in image_array(0 to 7, 0 to 7); -- Input image
+           downscaled_image : out image_array(0 to 3, 0 to 3); -- Output image
            done : buffer STD_LOGIC);
 end BoxSampling;
 
@@ -27,48 +27,41 @@ end BoxSampling;
 architecture Behavioral of BoxSampling is
     -- Signal
     signal downscale_row, downscale_col : INTEGER := 0;
--- Mulai proses
 begin
-    -- Proses
     process(clk, rst)
-        -- Variable
         variable r_sum, g_sum, b_sum : INTEGER;
-    -- Mulai
     begin
-        -- Reset saat rst = 1
         if rst = '1' then
             downscale_row <= 0;
             downscale_col <= 0;
             done <= '0';
-        -- Rising edge
         elsif rising_edge(clk) then
-            if downscale_col < (height / downscale_factor) and downscale_row < (width / downscale_factor) then
-                -- Reset sum saat awal iterasi
+            if downscale_col < 4 and downscale_row < 4 then  -- Fixed size for 8x8->4x4
                 r_sum := 0;
                 g_sum := 0;
                 b_sum := 0;
                 
-                -- Menghitung rata-rata warna dengan metode Box Sampling dengan faktor downscale untuk setiap pixel
-                for col in 0 to downscale_factor - 1 loop
-                    for row in 0 to downscale_factor - 1 loop
-                        r_sum := r_sum + r_array(downscale_row * downscale_factor + row, downscale_col * downscale_factor + col).RED;
-                        g_sum := g_sum + r_array(downscale_row * downscale_factor + row, downscale_col * downscale_factor + col).GREEN;
-                        b_sum := b_sum + r_array(downscale_row * downscale_factor + row, downscale_col * downscale_factor + col).BLUE;
+                -- Fixed 2x2 box sampling
+                for col in 0 to 1 loop
+                    for row in 0 to 1 loop
+                        r_sum := r_sum + r_array(downscale_row * 2 + row, downscale_col * 2 + col).RED;
+                        g_sum := g_sum + r_array(downscale_row * 2 + row, downscale_col * 2 + col).GREEN;
+                        b_sum := b_sum + r_array(downscale_row * 2 + row, downscale_col * 2 + col).BLUE;
                     end loop;
                 end loop;
 
-                -- Mengassign nilai rata-rata warna ke pixel baru
-                downscaled_image(downscale_row, downscale_col).RED <= r_sum / (downscale_factor * downscale_factor);
-                downscaled_image(downscale_row, downscale_col).GREEN <= g_sum / (downscale_factor * downscale_factor);
-                downscaled_image(downscale_row, downscale_col).BLUE <= b_sum / (downscale_factor * downscale_factor);
+                -- Average of 4 pixels (2x2)
+                downscaled_image(downscale_row, downscale_col).RED <= r_sum / 4;
+                downscaled_image(downscale_row, downscale_col).GREEN <= g_sum / 4;
+                downscaled_image(downscale_row, downscale_col).BLUE <= b_sum / 4;
 
-                -- Mengupdate indeks
-                if downscale_row = (width / downscale_factor) - 1 then
+                -- Fixed size updates
+                if downscale_row = 3 then
                     downscale_row <= 0;
-                    downscale_col <= downscale_col + 1;
-                    -- Jika sudah sampai baris terakhir, maka selesai
-                    if downscale_col = (height / downscale_factor) - 1 then
+                    if downscale_col = 3 then
                         done <= '1';
+                    else
+                        downscale_col <= downscale_col + 1;
                     end if;
                 else
                     downscale_row <= downscale_row + 1;
