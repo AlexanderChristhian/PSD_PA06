@@ -43,7 +43,7 @@ package body package_imageArray is
         variable width: INTEGER;
     -- Membuka file gambar dan membaca lebar gambar lalu mereturn nilai lebar
     begin
-        file_open(img_file, "C:/Users/alexa/Documents/.Semester 3/PSD/PSD_PA06/image_for_vhdl.txt", read_mode);
+        file_open(img_file, "D:\Akademis\Teknik Komputer\Semester 3\PSD\Praktikum\PSD_PA06\image_for_vhdl.txt", read_mode);
         readline(img_file, line_buffer);
         read(line_buffer, width);
         file_close(img_file);
@@ -57,7 +57,7 @@ package body package_imageArray is
         variable height, skip: INTEGER;
     -- Membuka file gambar dan membaca tinggi gambar lalu mereturn nilai tinggi
     begin
-        file_open(img_file, "C:/Users/alexa/Documents/.Semester 3/PSD/PSD_PA06/image_for_vhdl.txt", read_mode);
+        file_open(img_file, "D:\Akademis\Teknik Komputer\Semester 3\PSD\Praktikum\PSD_PA06\image_for_vhdl.txt", read_mode);
         readline(img_file, line_buffer); -- Skip width
         readline(img_file, line_buffer);
         read(line_buffer, height);
@@ -84,7 +84,7 @@ package body package_imageArray is
         variable factor: INTEGER;
     -- Membuka file gambar dan membaca faktor downsampling lalu mereturn nilai faktor
     begin
-        file_open(img_file, "C:/Users/alexa/Documents/.Semester 3/PSD/PSD_PA06/image_for_vhdl.txt", read_mode);
+        file_open(img_file, "D:\Akademis\Teknik Komputer\Semester 3\PSD\Praktikum\PSD_PA06\image_for_vhdl.txt", read_mode);
         readline(img_file, line_buffer); -- Skip width
         readline(img_file, line_buffer);
         readline(img_file, line_buffer);

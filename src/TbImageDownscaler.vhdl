@@ -89,7 +89,7 @@ begin
     -- Mulai
     begin
         -- Buka file gambar
-        file_open(img_file, "C:/Users/alexa/Documents/.Semester 3/PSD/PSD_PA06/image_for_vhdl.txt", read_mode);
+        file_open(img_file, "D:\Akademis\Teknik Komputer\Semester 3\PSD\Praktikum\PSD_PA06\image_for_vhdl.txt", read_mode);
         
         -- Memproses lebar, tinggi, dan faktor downsampling
         readline(img_file, line_buffer);
@@ -151,7 +151,7 @@ begin
     -- Stimulus process
     stim_proc: process
         variable output_line : line;
-        file output_file : text open write_mode is "C:/Users/alexa/Documents/.Semester 3/PSD/PSD_PA06/Output.txt";
+        file output_file : text open write_mode is "D:\Akademis\Teknik Komputer\Semester 3\PSD\Praktikum\PSD_PA06\Output.txt";
     begin
         -- Tunggu hingga proses selesai
         wait for 100 ns;
